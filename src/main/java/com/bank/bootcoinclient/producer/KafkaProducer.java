@@ -1,0 +1,31 @@
+package com.bank.bootcoinclient.producer;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class KafkaProducer {
+  private final KafkaTemplate<String, String> kafkaTemplate;
+
+  public void publishMessage(String message,String topic) {
+    ListenableFuture<SendResult<String, String>> futureMessage = kafkaTemplate.send(topic, message);
+    futureMessage.addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
+      @Override public void onFailure(Throwable ex) {
+        log.error("There was an error while sending message: {}", ex.getMessage());
+      }
+
+      @Override public void onSuccess(SendResult<String, String> result) {
+        log.info("Message {} has been sent to the topic successfully ", message );
+      }
+    });
+  }
+}
